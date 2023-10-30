@@ -36,11 +36,6 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     /*
-     * Соединяем сигнал, который передает ответ от БД с методом, который отображает ответ в ПИ
-     */
-    // connect(dataBase, &DataBase::sig_SendDataFromDB, this, &MainWindow::ScreenDataFromDB);
-
-    /*
      *  Сигнал для подключения к БД
      */
     connect(dataBase, &DataBase::sig_SendStatusConnection, this, &MainWindow::ReceiveStatusConnectionToDB);
@@ -58,7 +53,6 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_act_addData_triggered()
 {
-    //Отобразим диалоговое окно. Какой метод нужно использовать?
     dataDb->show();
 }
 
@@ -102,59 +96,36 @@ void MainWindow::on_pb_request_clicked()
 {
 
     ///Тут должен быть код ДЗ
-    QString all = "SELECT title, description FROM film f";
-    QString comedy = "SELECT title, description FROM film f "
-                      "JOIN film_category fc on f.film_id = fc.film_id "
-                      "JOIN category c on c.category_id = fc.category_id "
-                      "WHERE c.name = 'Comedy'";
-    QString horror = "SELECT title, description FROM film f "
-                      "JOIN film_category fc on f.film_id = fc.film_id "
-                      "JOIN category c on c.category_id = fc.category_id "
-                      "WHERE c.name = 'Horror'";
+    auto req = [&]{dataBase->RequestToDB(request);};
+    auto reqTable = [&]{dataBase->RequestToDBTable();};
+
     switch (ui->cb_category->currentIndex()+1) {
 
     case requestAllFilms:{
-        auto req = [&]{dataBase->RequestToDB(all);};
-        QtConcurrent::run(req);
+        QtConcurrent::run(reqTable);
         break;
     }
     case requestHorrors:{
-        auto req = [&]{dataBase->RequestToDB(horror);};
+        request = "SELECT title, description FROM film f "
+                  "JOIN film_category fc on f.film_id = fc.film_id "
+                  "JOIN category c on c.category_id = fc.category_id "
+                  "WHERE c.name = 'Horror'";
         QtConcurrent::run(req);
         break;
     }
     case requestComedy:{
-        auto req = [&]{dataBase->RequestToDB(comedy);};
+        request = "SELECT title, description FROM film f "
+                  "JOIN film_category fc on f.film_id = fc.film_id "
+                  "JOIN category c on c.category_id = fc.category_id "
+                  "WHERE c.name = 'Comedy'";
         QtConcurrent::run(req);
         break;
     }
     default:
         break;
     }
-}
 
-/*!
- * \brief Слот отображает значение в QTableWidget
- * \param widget
- * \param typeRequest
- */
-void MainWindow::ScreenDataFromDB(QAbstractItemModel *model)
-{
 
-    ///Тут должен быть код ДЗ
-//    switch (typeRequest) {
-
-//    case requestAllFilms:
-//    case requestHorrors:
-//    case requestComedy:{
-        ui->tv_result->setModel(model);
-        ui->tv_result->show();
-//        break;
-
-//    }
-//    default:
-//        break;
-//    }
 }
 
 /*!
@@ -180,7 +151,7 @@ void MainWindow::ReceiveStatusConnectionToDB(bool status)
 
 }
 
-void MainWindow::ReceiveStatusRequestToDB(QSqlError err)
+void MainWindow::ReceiveStatusRequestToDB(QSqlError err,  QAbstractItemModel* model)
 {
 
     if(err.type() != QSqlError::NoError){
@@ -188,11 +159,14 @@ void MainWindow::ReceiveStatusRequestToDB(QSqlError err)
         msg->exec();
     }
     else{
-//        ui->tv_result->setModel(model);
-//        ui->tv_result->show();
-        dataBase->ReadAnswerFromDB(requestAllFilms);
+        ui->tv_result->setModel(model);
     }
-
 }
 
+
+
+void MainWindow::on_pb_clear_clicked()
+{
+    ui->tv_result->setModel(nullptr);
+}
 

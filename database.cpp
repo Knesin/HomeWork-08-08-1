@@ -6,13 +6,14 @@ DataBase::DataBase(QObject *parent)
 
     dataBase = new QSqlDatabase();
 //=========================================
-    //simpleQuery = new QSqlQuery();
-    //tableWidget = new QTableWidget();
+    simpleQueryModel = new QSqlQueryModel();
 }
 
 DataBase::~DataBase()
 {
     delete dataBase;
+    delete simpleQueryModel;
+    delete tableModel;
 }
 
 /*!
@@ -72,16 +73,37 @@ void DataBase::RequestToDB(QString request)
     ///Тут должен быть код ДЗ
 
     QSqlError err;
-
-    simpleQueryModel.setQuery(request);
-    if(!simpleQueryModel.lastError().isValid()){
-        err = simpleQueryModel.lastError();
+    simpleQueryModel->setQuery(request, *dataBase);
+    if(simpleQueryModel->lastError().isValid()){
+        err = simpleQueryModel->lastError();
     }else{
-        simpleQueryModel.setHeaderData(0, Qt::Horizontal, QObject::tr("Название"));
-        simpleQueryModel.setHeaderData(1, Qt::Horizontal, QObject::tr("Описание"));
+        simpleQueryModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Название"));
+        simpleQueryModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Описание"));
     }
 
-    emit sig_SendStatusRequest(err);
+    emit sig_SendStatusRequest(err, simpleQueryModel);
+
+}
+
+void DataBase::RequestToDBTable()
+{
+
+    ///Тут должен быть код ДЗ
+
+    QSqlError err;
+    tableModel = new QSqlTableModel(nullptr, *dataBase);
+    tableModel->setTable("film");
+    tableModel->select();
+    if(tableModel->lastError().isValid()){
+        err = tableModel->lastError();
+    }else{
+        tableModel->removeColumns(3,11);
+        tableModel->removeColumns(0,1);
+        tableModel->setHeaderData(0, Qt::Horizontal, QObject::tr("Название"));
+        tableModel->setHeaderData(1, Qt::Horizontal, QObject::tr("Описание"));
+    }
+
+    emit sig_SendStatusRequest(err, tableModel);
 
 }
 
@@ -91,26 +113,4 @@ void DataBase::RequestToDB(QString request)
 QSqlError DataBase::GetLastError()
 {
     return dataBase->lastError();
-}
-
-void DataBase::ReadAnswerFromDB(int requestType)
-{
-    /*
-     * Используем оператор switch для разделения запросов
-    */
-    switch (requestType) {
-    case requestAllFilms:
-    case requestComedy:
-    case requestHorrors:
-    {
-
-        //emit sig_SendDataFromDB(tableView, requestAllFilms);
-        emit sig_SendDataFromDB(&simpleQueryModel);
-        break;
-    }
-
-    default:
-        break;
-    }
-
 }

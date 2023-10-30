@@ -23,17 +23,16 @@ public:
 
 
 public slots:
-    //void ScreenDataFromDB(const QTableWidget *widget, int typeRequest);
-    void ScreenDataFromDB(QAbstractItemModel *model);
     void ReceiveStatusConnectionToDB(bool status);
-    //void ReceiveStatusRequestToDB(QSqlError err, QAbstractItemModel* model);
-    void ReceiveStatusRequestToDB(QSqlError err);
+    void ReceiveStatusRequestToDB(QSqlError err, QAbstractItemModel* model);
 
 private slots:
     void on_act_addData_triggered();
     void on_act_connect_triggered();
     void on_pb_request_clicked();
 
+
+    void on_pb_clear_clicked();
 
 signals:
     void sig_RequestToDb(QString request);
@@ -46,5 +45,6 @@ private:
     DbData *dataDb;
     DataBase* dataBase;
     QMessageBox* msg;
+    QString request = "";
 };
 #endif // MAINWINDOW_H

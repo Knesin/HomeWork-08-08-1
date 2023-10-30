@@ -51,28 +51,21 @@ public:
     QSqlError GetLastError(void);
     void ConnectToDataBase(QVector<QString> dataForConnect);
 //==============================
-    void ReadAnswerFromDB( int answerType );
+    void RequestToDBTable();
 
 signals:
-
-   //void sig_SendDataFromDB(const QTableWidget *tableWg, int typeR);
-   //void sig_SendDataFromDB(const QTableView *tableWg, int typeR);
-   // void sig_SendDataFromDB(const QTableView *tableWg);
     void sig_SendDataFromDB(const QAbstractItemModel *model);
-
-   void sig_SendStatusConnection(bool);
+    void sig_SendStatusConnection(bool);
 //================================
-   void sig_SendStatusRequest(QSqlError err);
+   void sig_SendStatusRequest(QSqlError err, QAbstractItemModel *model);
 
 private:
 
     QSqlDatabase* dataBase;
 //================================
-    //QSqlQuery* simpleQuery;
-    //QTableWidget* tableWidget;
     QTableView* tableView;
-    QSqlQueryModel simpleQueryModel;
-    QSqlTableModel tableModel;
+    QSqlQueryModel* simpleQueryModel;
+    QSqlTableModel* tableModel;
 };
 
 #endif // DATABASE_H
